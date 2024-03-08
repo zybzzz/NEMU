@@ -45,6 +45,11 @@ ifdef CONFIG_MEM_COMPRESS
 LDFLAGS += -lzstd
 endif
 
+# Protobuf
+%.pb.c: %.proto
+	@python resource/nanopb/generator/nanopb_generator.py --strip-path $<
+	@mv $(basename $<).pb.h include/checkpoint
+
 # Compilation patterns
 $(OBJ_DIR)/%.o: %.c
 	@echo + CC $<
