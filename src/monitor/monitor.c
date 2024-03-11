@@ -227,6 +227,7 @@ static inline int parse_args(int argc, char *argv[]) {
       }
 
       case 14: {
+        // --using-gcpt-device
         extern void set_using_gcpt_mmio();
         set_using_gcpt_mmio();
         break;
@@ -272,6 +273,7 @@ static inline int parse_args(int argc, char *argv[]) {
         printf("\t--manual-oneshot-cpt    Manually take one-shot cpt by send signal.\n");
         printf("\t--manual-uniform-cpt    Manually take uniform cpt by send signal.\n");
         printf("\t--checkpoint-format     Specify the checkpoint format('gz' or 'zstd'), default: 'gz'.\n");
+        printf("\t--using-gcpt-device     Specify using device store hardware status or not\n");
 //        printf("\t--map-cpt               map to this file as pmem, which can be treated as a checkpoint.\n"); //comming back soon
 
         printf("\t--simpoint-profile      simpoint profiling\n");
@@ -330,6 +332,9 @@ void init_monitor(int argc, char *argv[]) {
   /* Perform ISA dependent initialization. */
   init_isa();
 
+  /* Initialize devices. */
+  init_device();
+
   // when there is a gcpt[restorer], we put bbl after gcpt[restorer]
   uint64_t bbl_start = 0;
   long img_size = 0; // how large we should copy for difftest
@@ -340,15 +345,15 @@ void init_monitor(int argc, char *argv[]) {
     assert(img_file != NULL);
 
     img_size = MEMORY_SIZE;
-    bbl_start = MEMORY_SIZE; // bbl size should never be used, let it crash if used
+    bbl_start = MEMORY_SIZE;  // bbl size should never be used, let it crash if used
 
     if (map_image_as_output_cpt) {  // map_cpt is loaded in init_mem
       Log("Restoring with memory image cpt");
     } else {
-      load_img(img_file, "Gcpt file form cmdline", RESET_VECTOR, 0);
+      load_img(img_file, "Checkpoint file form cmdline", RESET_VECTOR, 0);
     }
     if (restorer) {
-      load_img(restorer, "Gcpt restorer form cmdline", RESET_VECTOR, 0xf00);
+      load_img(restorer, "Gcpt restorer form cmdline", RESET_VECTOR, 0xa0000);
     }
 
   } else if (checkpoint_state != NoCheckpoint) {
@@ -385,9 +390,6 @@ void init_monitor(int argc, char *argv[]) {
 
   /* Initialize differential testing. */
   init_difftest(diff_so_file, img_size, difftest_port);
-
-  /* Initialize devices. */
-  init_device();
 
 #endif
 

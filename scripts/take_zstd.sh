@@ -20,5 +20,6 @@
     -w linux \
     -r ./resource/gcpt_restore/build/gcpt.bin \
     --dont-skip-boot\
+    --using-gcpt-device \
     -I 11000000 ./ready-to-run/linux-0xa0000.bin \
     --checkpoint-format zstd
