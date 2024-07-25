@@ -741,7 +741,7 @@ void disable_time_intr() {
 
 #ifdef CONFIG_RVH
 void update_vsatp(const vsatp_t new_val) {
-  if (new_val.mode == SATP_MODE_BARE || new_val.mode == SATP_MODE_Sv39)
+  if (new_val.mode == SATP_MODE_BARE || new_val.mode == SATP_MODE_Sv39 || new_val.mode == SATP_MODE_Sv48)
     vsatp->mode = new_val.mode;
   vsatp->asid = new_val.asid;
   switch (hgatp->mode) {
@@ -750,6 +750,9 @@ void update_vsatp(const vsatp_t new_val) {
       break;
     case HGATP_MODE_Sv39x4:
       vsatp->ppn = new_val.ppn & VSATP_PPN_HGATP_Sv39x4_MASK;
+      break;
+    case HGATP_MODE_Sv48x4:
+      vsatp->ppn = new_val.ppn & VSATP_PPN_HGATP_Sv48x4_MASK;
       break;
     default:
       panic("HGATP.mode is illegal value(%lx), when write vsatp\n", (uint64_t)hgatp->mode);
@@ -779,7 +782,7 @@ static inline void csr_write(word_t *dest, word_t src) {
       }
       vsatp_t new_val = (vsatp_t)src;
       // legal mode
-      if (new_val.mode == SATP_MODE_BARE || new_val.mode == SATP_MODE_Sv39) {
+      if (new_val.mode == SATP_MODE_BARE || new_val.mode == SATP_MODE_Sv39 || new_val.mode == SATP_MODE_Sv48) {
         update_vsatp(new_val);
       }
     }
@@ -996,7 +999,7 @@ static inline void csr_write(word_t *dest, word_t src) {
       longjmp_exception(EX_II);
     }
     // Only support Sv39, ignore write that sets other mode
-    if ((src & SATP_SV39_MASK) >> 60 == 8 || (src & SATP_SV39_MASK) >> 60 == 0)
+    if ((src & SATP_SV39_MASK) >> 60 == 9 || (src & SATP_SV39_MASK) >> 60 == 8 || (src & SATP_SV39_MASK) >> 60 == 0)
       *dest = MASKED_SATP(src);
   }
 #ifdef CONFIG_RV_SDTRIG
@@ -1051,7 +1054,7 @@ static inline void csr_write(word_t *dest, word_t src) {
     hgatp->ppn = new_val.ppn & ~(rtlreg_t)3 & BITMASK(CONFIG_PADDRBITS - PAGE_SHIFT);
 
     // Only support Sv39x4, ignore write that sets other mode
-    if (new_val.mode == HGATP_MODE_Sv39x4 || new_val.mode == HGATP_MODE_BARE)
+    if (new_val.mode == HGATP_MODE_Sv48x4 || new_val.mode == HGATP_MODE_Sv39x4 || new_val.mode == HGATP_MODE_BARE)
       hgatp->mode = new_val.mode;
     // When MODE=Bare, software should set the remaining fields in hgatp to zeros, not hardware.
   }

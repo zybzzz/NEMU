@@ -131,7 +131,7 @@ word_t raise_intr(word_t NO, vaddr_t epc) {
                     ((v || hld_st_temp) && ((0 <= NO && NO <= 7 && NO != 2) || NO == EX_IPF || NO == EX_LPF || NO == EX_SPF)));
     hstatus->spv = cpu.v;
     if(cpu.v){
-      hstatus->spvp = cpu.mode; 
+      hstatus->spvp = cpu.mode;
     }
     cpu.v = 0;
     set_sys_state_flag(SYS_STATE_FLUSH_TCACHE);
@@ -156,7 +156,7 @@ word_t raise_intr(word_t NO, vaddr_t epc) {
 #ifdef CONFIG_TVAL_EX_II
       case EX_II: stval->val = cpu.instr; break;
 #endif
-      case EX_BP : 
+      case EX_BP :
 #ifdef CONFIG_RVH
         htval->val = 0;
 #endif
@@ -167,7 +167,7 @@ word_t raise_intr(word_t NO, vaddr_t epc) {
 #endif
     }
     // When a trap is taken into HS-mode, htinst is written with 0.
-    // Todo: support tinst encoding descriped in section 
+    // Todo: support tinst encoding descriped in section
     // 18.6.3. Transformed Instruction or Pseudoinstruction for mtinst or htinst.
     MUXDEF(CONFIG_RVH, htinst->val = 0;,);
     cpu.mode = MODE_S;
@@ -233,7 +233,7 @@ word_t isa_query_intr() {
   };
 #ifdef CONFIG_RV_SSCOFPMF
   intr_num = 14;
-#else 
+#else
   intr_num = 13;
 #endif
 #else
@@ -254,7 +254,7 @@ word_t isa_query_intr() {
       bool hdeleg = (hideleg->val & (1 << irq)) != 0;
       bool global_enable = (hdeleg & deleg)? (cpu.v && cpu.mode == MODE_S && vsstatus->sie) || (cpu.v && cpu.mode < MODE_S):
                            (deleg)? ((cpu.mode == MODE_S) && mstatus->sie) || (cpu.mode < MODE_S) || cpu.v:
-                           ((cpu.mode == MODE_M) && mstatus->mie) || (cpu.mode < MODE_M);  
+                           ((cpu.mode == MODE_M) && mstatus->mie) || (cpu.mode < MODE_M);
 #else
       bool global_enable = (deleg ? ((cpu.mode == MODE_S) && mstatus->sie) || (cpu.mode < MODE_S) :
           ((cpu.mode == MODE_M) && mstatus->mie) || (cpu.mode < MODE_M));
@@ -266,8 +266,9 @@ word_t isa_query_intr() {
 }
 
 #ifdef CONFIG_USE_XS_ARCH_CSRS
-word_t INTR_TVAL_SV39_SEXT(word_t vaddr) {
-  vaddr = vaddr & (vaddr_t)0x7FFFFFFFFF;
-  return SEXT(vaddr, 39); // USE SV39 VADDR
+// Should be fixed later
+word_t INTR_TVAL_SV48_SEXT(word_t vaddr) {
+  vaddr = vaddr & (vaddr_t)0xFFFFFFFFFFFF;
+  return SEXT(vaddr, 48); // USE SV48 VADDR
 }
 #endif
